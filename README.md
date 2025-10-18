@@ -20,6 +20,7 @@ cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
+php artisan migrate
 cd ..
 
 # 3. Install WhatsApp service dependencies
@@ -27,11 +28,17 @@ cd whatsapp-service
 npm install
 cd ..
 
-# 4. Start both services
-bash start.sh
+# 4. Install frontend dependencies
+cd frontend
+npm install
+cd ..
+
+# 5. Start all services
+bash start-all.sh
 ```
 
 **Services will be available at:**
+- 🎨 **Frontend Dashboard**: http://localhost:3001
 - 🔧 Backend API: http://localhost:8000/api/health
 - 📱 WhatsApp Service: http://localhost:3000/health
 
@@ -129,11 +136,12 @@ npm install
 npm start
 ```
 
-### 4. Frontend Setup (Coming Soon)
+### 4. Frontend Setup (React)
 ```bash
 cd frontend
 npm install
-npm run dev
+cp .env.example .env
+npm start
 ```
 
 ## 🔧 Configuration
