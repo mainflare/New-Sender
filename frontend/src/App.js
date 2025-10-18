@@ -58,25 +58,11 @@ function ProtectedRoute({ children, adminOnly = false }) {
 // Public Route Component (redirect if already logged in)
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   // Debug logging
   console.log('PublicRoute render - user:', user, 'loading:', loading);
 
-  // Handle redirect when user becomes available
-  useEffect(() => {
-    console.log('PublicRoute useEffect - user:', user, 'loading:', loading);
-    if (user && !loading) {
-      console.log('User is logged in, redirecting to dashboard');
-      // Small delay to ensure state is fully updated
-      const timer = setTimeout(() => {
-        console.log('Executing redirect to dashboard');
-        navigate('/dashboard', { replace: true });
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [user, loading, navigate]);
+  // No need for useEffect - we handle redirect directly in render
 
   if (loading) {
     return (
@@ -87,12 +73,9 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
-    // Show loading while redirecting
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
+    // Redirect immediately if user is logged in
+    console.log('User is logged in, redirecting to dashboard immediately');
+    return <Navigate to="/dashboard" replace />;
   }
 
   console.log('User is not logged in, showing public page');
