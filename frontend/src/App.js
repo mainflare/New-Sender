@@ -8,11 +8,12 @@ import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-// Layout
-import DashboardLayout from './components/Layout/DashboardLayout';
+// Layouts
+import UserLayout from './components/Layout/UserLayout';
+import AdminLayout from './components/Layout/AdminLayout';
 
-// Main pages
-import Dashboard from './pages/Dashboard';
+// User pages
+import UserDashboard from './pages/UserDashboard';
 import WhatsAppSessions from './pages/WhatsAppSessions';
 import Campaigns from './pages/Campaigns';
 import Contacts from './pages/Contacts';
@@ -23,14 +24,10 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 
 // Admin pages
-import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 import AdminSettings from './pages/admin/AdminSettings';
-
-// All components are now properly imported above
-
-// All admin components are now properly imported above
 
 // Protected Route Component
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -62,8 +59,6 @@ function PublicRoute({ children }) {
   // Debug logging
   console.log('PublicRoute render - user:', user, 'loading:', loading, 'user type:', typeof user, 'user truthy:', !!user);
 
-  // No need for useEffect - we handle redirect directly in render
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -73,13 +68,41 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
-    // Redirect immediately if user is logged in
-    console.log('User is logged in, redirecting to root path immediately');
-    return <Navigate to="/" replace />;
+    // Redirect based on user role
+    console.log('User is logged in, redirecting based on role:', user.role);
+    if (user.role === 'super_admin' || user.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    } else {
+      return <Navigate to="/user" replace />;
+    }
   }
 
   console.log('User is not logged in, showing public page');
   return children;
+}
+
+// Role-based redirect component
+function RoleBasedRedirect() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redirect based on role
+  if (user.role === 'super_admin' || user.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  } else {
+    return <Navigate to="/user" replace />;
+  }
 }
 
 function App() {
@@ -132,17 +155,19 @@ function App() {
                 }
               />
 
-              {/* Protected Routes */}
+              {/* Root redirect */}
+              <Route path="/" element={<RoleBasedRedirect />} />
+
+              {/* User Routes */}
               <Route
-                path="/"
+                path="/user"
                 element={
                   <ProtectedRoute>
-                    <DashboardLayout />
+                    <UserLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
+                <Route index element={<UserDashboard />} />
                 <Route path="conversations" element={<Conversations />} />
                 <Route path="contacts" element={<Contacts />} />
                 <Route path="campaigns" element={<Campaigns />} />
@@ -151,44 +176,25 @@ function App() {
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="profile" element={<Profile />} />
+              </Route>
 
-                {/* Admin Routes */}
-                <Route
-                  path="admin"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/users"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminUsers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/subscriptions"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminSubscriptions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/settings"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminSettings />
-                    </ProtectedRoute>
-                  }
-                />
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="subscriptions" element={<AdminSubscriptions />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
 
               {/* Catch all */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Router>
