@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Full API response:', response);
       console.log('Response data:', response.data);
       
-      const { token, user } = response.data;
+      const { access_token: token, user } = response.data.data;
       
       console.log('Extracted token:', token);
       console.log('Extracted user:', user);
@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { token, user } = response.data;
+      const { access_token: token, user } = response.data.data;
       
       safeSetToStorage('token', token);
       safeSetToStorage('user', user);
