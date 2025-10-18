@@ -24,8 +24,22 @@ export default function Login() {
 
     console.log('Login result:', result);
     
-    // Don't navigate manually - let PublicRoute handle the redirect
-    // The PublicRoute will automatically redirect when user state updates
+    // Try multiple approaches to ensure redirect works
+    if (result.success) {
+      console.log('Login successful, attempting redirect...');
+      
+      // Method 1: Try React Router navigation
+      setTimeout(() => {
+        console.log('Attempting React Router navigation...');
+        window.location.href = '/dashboard';
+      }, 500);
+      
+      // Method 2: Force page reload to dashboard
+      setTimeout(() => {
+        console.log('Attempting window.location redirect...');
+        window.location.replace('/dashboard');
+      }, 1000);
+    }
   };
 
   const handleChange = (e) => {
