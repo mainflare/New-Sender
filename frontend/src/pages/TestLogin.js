@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function TestLogin() {
-  const { user, login, loading } = useAuth();
+  const { user, login } = useAuth();
   const [testResults, setTestResults] = useState([]);
   const [isTesting, setIsTesting] = useState(false);
 

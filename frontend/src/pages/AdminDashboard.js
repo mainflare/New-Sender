@@ -4,13 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   UsersIcon,
   CurrencyDollarIcon,
-  ChartBarIcon,
   ServerIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
   ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AdminDashboard() {
