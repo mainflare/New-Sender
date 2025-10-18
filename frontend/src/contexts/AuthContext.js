@@ -1,5 +1,33 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+
+// Helper function to safely get data from localStorage
+const safeGetFromStorage = (key, defaultValue = null) => {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item || item === 'null' || item === 'undefined') {
+      return defaultValue;
+    }
+    return key === 'user' ? JSON.parse(item) : item;
+  } catch (error) {
+    console.error(`Error reading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
+// Helper function to safely set data to localStorage
+const safeSetToStorage = (key, value) => {
+  try {
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      const stringValue = key === 'user' ? JSON.stringify(value) : value;
+      localStorage.setItem(key, stringValue);
+    }
+  } catch (error) {
+    console.error(`Error writing ${key} to localStorage:`, error);
+  }
+};
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
@@ -13,13 +41,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Try to get user from localStorage on initial load
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState(() => safeGetFromStorage('user'));
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => safeGetFromStorage('token'));
   const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   useEffect(() => {
@@ -48,12 +72,12 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.getUser();
       setUser(response.data);
       // Update localStorage with fresh user data
-      localStorage.setItem('user', JSON.stringify(response.data));
+      safeSetToStorage('user', response.data);
     } catch (error) {
       console.error('Failed to load user:', error);
       // Clear invalid token without calling logout to avoid infinite loop
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      safeSetToStorage('token', null);
+      safeSetToStorage('user', null);
       setToken(null);
       setUser(null);
       
@@ -72,8 +96,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login(credentials);
       const { token, user } = response.data;
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      safeSetToStorage('token', token);
+      safeSetToStorage('user', user);
       
       setToken(token);
       setUser(user);
@@ -92,8 +116,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register(userData);
       const { token, user } = response.data;
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      safeSetToStorage('token', token);
+      safeSetToStorage('user', user);
       
       setToken(token);
       setUser(user);
@@ -113,9 +137,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('currentWorkspaceId');
+      safeSetToStorage('token', null);
+      safeSetToStorage('user', null);
+      safeSetToStorage('currentWorkspaceId', null);
       setToken(null);
       setUser(null);
       toast.success('Logged out successfully');
@@ -123,9 +147,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const clearAuth = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentWorkspaceId');
+    safeSetToStorage('token', null);
+    safeSetToStorage('user', null);
+    safeSetToStorage('currentWorkspaceId', null);
     setToken(null);
     setUser(null);
     setLoading(false);
