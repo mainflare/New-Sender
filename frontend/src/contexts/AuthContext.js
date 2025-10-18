@@ -13,7 +13,11 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    // Try to get user from localStorage on initial load
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [isLoadingUser, setIsLoadingUser] = useState(false);
@@ -23,14 +27,28 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingUser(true);
       loadUser();
     } else if (!token) {
+      // If no token, clear user and stop loading
+      setUser(null);
       setLoading(false);
     }
-  }, [token, isLoadingUser]);
+
+    // Fallback: stop loading after 5 seconds to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setIsLoadingUser(false);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [token, isLoadingUser, loading]);
 
   const loadUser = async () => {
     try {
       const response = await authAPI.getUser();
       setUser(response.data);
+      // Update localStorage with fresh user data
+      localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('Failed to load user:', error);
       // Clear invalid token without calling logout to avoid infinite loop
@@ -131,4 +149,5 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 

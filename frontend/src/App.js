@@ -68,9 +68,11 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
+    console.log('User is logged in, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
+  console.log('User is not logged in, showing public page');
   return children;
 }
 
