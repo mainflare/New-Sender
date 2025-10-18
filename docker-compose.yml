@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: whatsml_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_DATABASE:-whatsml}
+      MYSQL_USER: ${DB_USERNAME:-whatsml_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-whatsml_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    networks:
+      - whatsml_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: whatsml_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - whatsml_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: whatsml_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/storage:/var/www/storage
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-whatsml}
+      - DB_USERNAME=${DB_USERNAME:-whatsml_user}
+      - DB_PASSWORD=${DB_PASSWORD:-whatsml_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - whatsml_network
+    command: >
+      sh -c "composer install --no-dev --optimize-autoloader &&
+             php artisan key:generate --force &&
+             php artisan migrate --force &&
+             php artisan config:cache &&
+             php artisan route:cache &&
+             php artisan view:cache &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  # Laravel Queue Worker
+  queue_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: whatsml_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-whatsml}
+      - DB_USERNAME=${DB_USERNAME:-whatsml_user}
+      - DB_PASSWORD=${DB_PASSWORD:-whatsml_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+      - backend
+    networks:
+      - whatsml_network
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+  # WhatsApp Service (Node.js)
+  whatsapp_service:
+    build:
+      context: ./whatsapp-service
+      dockerfile: Dockerfile
+    container_name: whatsml_whatsapp
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./whatsapp-service:/app
+      - whatsapp_sessions:/app/.wwebjs_auth
+      - whatsapp_cache:/app/.wwebjs_cache
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${WHATSAPP_SERVICE_PORT:-3000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    ports:
+      - "${WHATSAPP_SERVICE_PORT:-3000}:3000"
+    networks:
+      - whatsml_network
+    command: npm start
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: whatsml_nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./backend/public:/var/www/public
+      - ./frontend/dist:/var/www/frontend
+    depends_on:
+      - backend
+      - whatsapp_service
+    networks:
+      - whatsml_network
+
+networks:
+  whatsml_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  whatsapp_sessions:
+  whatsapp_cache:
+
+

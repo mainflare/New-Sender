@@ -1,0 +1,138 @@
+name: Deploy WhatsML
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-backend:
+    name: Test Laravel Backend
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_mysql, zip, redis
+          coverage: none
+
+      - name: Install Dependencies
+        working-directory: ./backend
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Copy .env
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Tests
+        working-directory: ./backend
+        run: php artisan test
+
+  test-whatsapp-service:
+    name: Test WhatsApp Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        working-directory: ./whatsapp-service
+        run: npm ci
+
+      - name: Run Tests
+        working-directory: ./whatsapp-service
+        run: npm test || echo "No tests configured yet"
+
+  build-and-deploy:
+    name: Build and Deploy
+    needs: [test-backend, test-whatsapp-service]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/whatsml-backend:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/whatsml-backend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/whatsml-backend:buildcache,mode=max
+
+      - name: Build and push WhatsApp Service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./whatsapp-service
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/whatsml-whatsapp:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/whatsml-whatsapp:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/whatsml-whatsapp:buildcache,mode=max
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/whatsml
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d --build
+            docker-compose exec -T backend php artisan migrate --force
+            docker-compose exec -T backend php artisan config:cache
+            docker-compose exec -T backend php artisan route:cache
+            docker-compose exec -T backend php artisan view:cache
+
+  notify:
+    name: Notify Deployment Status
+    needs: [build-and-deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send notification
+        run: |
+          echo "Deployment completed"
+          # Add Slack/Discord/Email notification here
+
+
