@@ -35,7 +35,7 @@ Route::get('/health', function () {
     ]);
 });
 
-// Public routes
+                                                                                                                                                                                                                                                                                                                            // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -52,8 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('workspaces', WorkspaceController::class);
     Route::post('/workspaces/{id}/invite', [WorkspaceController::class, 'inviteMember']);
     
-    // WhatsApp Sessions
-    Route::apiResource('whatsapp-sessions', WhatsappSessionController::class);
+    // WhatsApp Sessions                                                                                                                            
+    Route::apiResource('whatsapp-sessions', WhatsappSessionController::class);                                                                                                      
     Route::get('/whatsapp-sessions/{id}/qr', [WhatsappSessionController::class, 'getQRCode']);
     Route::post('/whatsapp-sessions/{id}/disconnect', [WhatsappSessionController::class, 'disconnect']);
     
