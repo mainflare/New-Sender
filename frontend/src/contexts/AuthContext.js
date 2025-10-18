@@ -110,24 +110,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (credentials) => {
+    console.log('Login function called with credentials:', credentials);
     try {
+      console.log('Calling authAPI.login...');
       const response = await authAPI.login(credentials);
+      console.log('Full API response:', response);
+      console.log('Response data:', response.data);
+      
       const { token, user } = response.data;
       
-      console.log('Login response:', { token, user });
+      console.log('Extracted token:', token);
+      console.log('Extracted user:', user);
       
+      console.log('Saving to localStorage...');
       safeSetToStorage('token', token);
       safeSetToStorage('user', user);
       
-      console.log('Setting token and user state...');
+      console.log('Setting React state...');
       setToken(token);
       setUser(user);
       
-      console.log('User state should be updated now');
+      console.log('State setters called, checking localStorage...');
+      console.log('localStorage token:', localStorage.getItem('token'));
+      console.log('localStorage user:', localStorage.getItem('user'));
       
       // Force a re-render to ensure state is updated
       setTimeout(() => {
         console.log('Checking state after timeout - user:', user, 'token:', token);
+        console.log('Current React state - user:', user, 'token:', token);
       }, 100);
       
       toast.success('Login successful!');
