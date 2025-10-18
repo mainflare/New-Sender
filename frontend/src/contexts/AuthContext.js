@@ -16,14 +16,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   useEffect(() => {
-    if (token) {
+    if (token && !isLoadingUser) {
+      setIsLoadingUser(true);
       loadUser();
-    } else {
+    } else if (!token) {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, isLoadingUser]);
 
   const loadUser = async () => {
     try {
@@ -31,9 +33,19 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
     } catch (error) {
       console.error('Failed to load user:', error);
-      logout();
+      // Clear invalid token without calling logout to avoid infinite loop
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+      
+      // If it's a network error, show a helpful message
+      if (error.code === 'ECONNABORTED' || error.message.includes('Network Error')) {
+        console.warn('Backend API is not accessible. Please ensure the backend is running.');
+      }
     } finally {
       setLoading(false);
+      setIsLoadingUser(false);
     }
   };
 
@@ -85,10 +97,21 @@ export const AuthProvider = ({ children }) => {
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('currentWorkspaceId');
       setToken(null);
       setUser(null);
       toast.success('Logged out successfully');
     }
+  };
+
+  const clearAuth = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('currentWorkspaceId');
+    setToken(null);
+    setUser(null);
+    setLoading(false);
+    setIsLoadingUser(false);
   };
 
   const isSuperAdmin = () => user?.role === 'super_admin';
@@ -101,6 +124,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    clearAuth,
     isSuperAdmin,
     isAdmin,
   };

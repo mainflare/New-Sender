@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { workspaceAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
 const WorkspaceContext = createContext(null);
@@ -13,16 +14,31 @@ export const useWorkspace = () => {
 };
 
 export const WorkspaceProvider = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadWorkspaces();
-  }, []);
+    // Only load workspaces if user is authenticated
+    if (user && !authLoading) {
+      loadWorkspaces();
+    } else if (!authLoading) {
+      // If not authenticated, clear workspaces and stop loading
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+      setLoading(false);
+    }
+  }, [user, authLoading]);
 
   const loadWorkspaces = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     try {
+      setLoading(true);
       const response = await workspaceAPI.getAll();
       setWorkspaces(response.data.data || response.data);
       

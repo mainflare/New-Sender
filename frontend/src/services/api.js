@@ -4,6 +4,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // 10 second timeout
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -31,7 +32,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
