@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
@@ -58,6 +58,15 @@ function ProtectedRoute({ children, adminOnly = false }) {
 // Public Route Component (redirect if already logged in)
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Handle redirect when user becomes available
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('User is logged in, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -68,8 +77,12 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
-    console.log('User is logged in, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
+    // Show loading while redirecting
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
   }
 
   console.log('User is not logged in, showing public page');
