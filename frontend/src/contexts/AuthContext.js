@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import toast from 'react-hot-toast';
 
 // Helper function to safely get data from localStorage
 const safeGetFromStorage = (key, defaultValue = null) => {
@@ -28,7 +29,6 @@ const safeSetToStorage = (key, value) => {
     console.error(`Error writing ${key} to localStorage:`, error);
   }
 };
-import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
