@@ -41,9 +41,17 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => safeGetFromStorage('user'));
+  const [user, setUser] = useState(() => {
+    const savedUser = safeGetFromStorage('user');
+    console.log('AuthProvider initial user state:', savedUser);
+    return savedUser;
+  });
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(() => safeGetFromStorage('token'));
+  const [token, setToken] = useState(() => {
+    const savedToken = safeGetFromStorage('token');
+    console.log('AuthProvider initial token state:', savedToken);
+    return savedToken;
+  });
   const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   useEffect(() => {
@@ -66,6 +74,16 @@ export const AuthProvider = ({ children }) => {
 
     return () => clearTimeout(timeout);
   }, [token, isLoadingUser, loading]);
+
+  // Debug: Track user state changes
+  useEffect(() => {
+    console.log('AuthContext user state changed:', user);
+  }, [user]);
+
+  // Debug: Track token state changes
+  useEffect(() => {
+    console.log('AuthContext token state changed:', token);
+  }, [token]);
 
   const loadUser = async () => {
     try {
@@ -106,6 +124,11 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       
       console.log('User state should be updated now');
+      
+      // Force a re-render to ensure state is updated
+      setTimeout(() => {
+        console.log('Checking state after timeout - user:', user, 'token:', token);
+      }, 100);
       
       toast.success('Login successful!');
       return { success: true };

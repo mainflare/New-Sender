@@ -60,7 +60,7 @@ function PublicRoute({ children }) {
   const { user, loading } = useAuth();
 
   // Debug logging
-  console.log('PublicRoute render - user:', user, 'loading:', loading);
+  console.log('PublicRoute render - user:', user, 'loading:', loading, 'user type:', typeof user, 'user truthy:', !!user);
 
   // No need for useEffect - we handle redirect directly in render
 
