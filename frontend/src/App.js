@@ -64,7 +64,12 @@ function PublicRoute({ children }) {
   useEffect(() => {
     if (user && !loading) {
       console.log('User is logged in, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      // Small delay to ensure state is fully updated
+      const timer = setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [user, loading, navigate]);
 

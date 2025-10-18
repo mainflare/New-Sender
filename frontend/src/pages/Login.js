@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
-  const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -23,9 +22,8 @@ export default function Login() {
 
     setLoading(false);
 
-    if (result.success) {
-      navigate('/dashboard');
-    }
+    // Don't navigate manually - let PublicRoute handle the redirect
+    // The PublicRoute will automatically redirect when user state updates
   };
 
   const handleChange = (e) => {
