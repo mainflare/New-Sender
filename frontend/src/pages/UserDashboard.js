@@ -6,10 +6,6 @@ import {
   ChatBubbleLeftRightIcon,
   UserGroupIcon,
   MegaphoneIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  PlusIcon,
   ArrowTrendingUpIcon,
 } from '@heroicons/react/24/outline';
 

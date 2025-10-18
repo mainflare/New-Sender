@@ -7,6 +7,7 @@ import { WorkspaceProvider } from './contexts/WorkspaceContext';
 // Auth pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import TestLogin from './pages/TestLogin';
 
 // Layouts
 import UserLayout from './components/Layout/UserLayout';
@@ -153,6 +154,10 @@ function App() {
                     <Register />
                   </PublicRoute>
                 }
+              />
+              <Route
+                path="/test"
+                element={<TestLogin />}
               />
 
               {/* Root redirect */}
