@@ -25,6 +25,16 @@ use App\Http\Controllers\Api\GoogleMapsScraperController;
 |--------------------------------------------------------------------------
 */
 
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'WhatsML Backend API is running',
+        'timestamp' => now()->toISOString(),
+        'version' => '1.0.0'
+    ]);
+});
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
