@@ -1,8 +1,41 @@
 # WhatsML – AI-Based Marketing & Chat Automation & Bulk Sender Tools for WhatsApp (SaaS)
 
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![Laravel](https://img.shields.io/badge/Laravel-11-red.svg)](https://laravel.com)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
+
 ## 🚀 Overview
 
 WhatsML is a comprehensive SaaS platform for WhatsApp marketing automation, AI-powered chatbots, and bulk messaging. Built with Laravel (backend), Node.js (WhatsApp service), and designed for scalability from 10 to 10,000+ users.
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/mainflare/New-Sender.git
+cd New-Sender
+
+# 2. Install backend dependencies
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+cd ..
+
+# 3. Install WhatsApp service dependencies
+cd whatsapp-service
+npm install
+cd ..
+
+# 4. Start both services
+bash start.sh
+```
+
+**Services will be available at:**
+- 🔧 Backend API: http://localhost:8000/api/health
+- 📱 WhatsApp Service: http://localhost:3000/health
+
+See [QUICK_START.md](QUICK_START.md) for detailed instructions.
 
 ## ✨ Key Features
 
