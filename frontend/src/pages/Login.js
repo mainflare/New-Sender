@@ -22,6 +22,8 @@ export default function Login() {
 
     setLoading(false);
 
+    console.log('Login result:', result);
+    
     // Don't navigate manually - let PublicRoute handle the redirect
     // The PublicRoute will automatically redirect when user state updates
   };

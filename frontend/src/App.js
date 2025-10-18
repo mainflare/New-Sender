@@ -16,21 +16,21 @@ import Dashboard from './pages/Dashboard';
 import WhatsAppSessions from './pages/WhatsAppSessions';
 import Campaigns from './pages/Campaigns';
 import Contacts from './pages/Contacts';
+import Conversations from './pages/Conversations';
+import Chatbots from './pages/Chatbots';
+import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminSubscriptions from './pages/admin/AdminSubscriptions';
+import AdminSettings from './pages/admin/AdminSettings';
 
-// Placeholder components for routes not yet created
-const Conversations = () => <div className="p-6"><h1 className="text-2xl font-bold">Conversations (Coming Soon)</h1></div>;
-const Chatbots = () => <div className="p-6"><h1 className="text-2xl font-bold">Chatbots (Coming Soon)</h1></div>;
-const Analytics = () => <div className="p-6"><h1 className="text-2xl font-bold">Analytics (Coming Soon)</h1></div>;
-const Settings = () => <div className="p-6"><h1 className="text-2xl font-bold">Settings (Coming Soon)</h1></div>;
-const Profile = () => <div className="p-6"><h1 className="text-2xl font-bold">Profile (Coming Soon)</h1></div>;
+// All components are now properly imported above
 
-// Admin placeholders
-const AdminUsers = () => <div className="p-6"><h1 className="text-2xl font-bold">Admin Users (Coming Soon)</h1></div>;
-const AdminSubscriptions = () => <div className="p-6"><h1 className="text-2xl font-bold">Admin Subscriptions (Coming Soon)</h1></div>;
-const AdminSettings = () => <div className="p-6"><h1 className="text-2xl font-bold">Admin Settings (Coming Soon)</h1></div>;
+// All admin components are now properly imported above
 
 // Protected Route Component
 function ProtectedRoute({ children, adminOnly = false }) {
