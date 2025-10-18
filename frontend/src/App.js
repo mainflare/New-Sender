@@ -74,8 +74,8 @@ function PublicRoute({ children }) {
 
   if (user) {
     // Redirect immediately if user is logged in
-    console.log('User is logged in, redirecting to dashboard immediately');
-    return <Navigate to="/dashboard" replace />;
+    console.log('User is logged in, redirecting to root path immediately');
+    return <Navigate to="/" replace />;
   }
 
   console.log('User is not logged in, showing public page');

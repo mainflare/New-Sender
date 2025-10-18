@@ -31,13 +31,13 @@ export default function Login() {
       // Method 1: Try React Router navigation
       setTimeout(() => {
         console.log('Attempting React Router navigation...');
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       }, 500);
       
-      // Method 2: Force page reload to dashboard
+      // Method 2: Force page reload to root
       setTimeout(() => {
         console.log('Attempting window.location redirect...');
-        window.location.replace('/dashboard');
+        window.location.replace('/');
       }, 1000);
     }
   };
