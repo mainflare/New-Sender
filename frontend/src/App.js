@@ -60,12 +60,17 @@ function PublicRoute({ children }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Debug logging
+  console.log('PublicRoute render - user:', user, 'loading:', loading);
+
   // Handle redirect when user becomes available
   useEffect(() => {
+    console.log('PublicRoute useEffect - user:', user, 'loading:', loading);
     if (user && !loading) {
       console.log('User is logged in, redirecting to dashboard');
       // Small delay to ensure state is fully updated
       const timer = setTimeout(() => {
+        console.log('Executing redirect to dashboard');
         navigate('/dashboard', { replace: true });
       }, 100);
       

@@ -96,11 +96,16 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login(credentials);
       const { token, user } = response.data;
       
+      console.log('Login response:', { token, user });
+      
       safeSetToStorage('token', token);
       safeSetToStorage('user', user);
       
+      console.log('Setting token and user state...');
       setToken(token);
       setUser(user);
+      
+      console.log('User state should be updated now');
       
       toast.success('Login successful!');
       return { success: true };
