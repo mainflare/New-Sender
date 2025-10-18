@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function TestLogin() {
   const { user, login } = useAuth();
   const [testResults, setTestResults] = useState([]);
   const [isTesting, setIsTesting] = useState(false);
+
+  // Track user state changes
+  useEffect(() => {
+    if (user) {
+      addResult('User state updated!', true);
+      addResult(`Current user: ${user.name} (${user.role})`, true);
+    }
+  }, [user]);
 
   const addResult = (message, success = true) => {
     setTestResults(prev => [...prev, { message, success, timestamp: new Date().toLocaleTimeString() }]);
@@ -24,8 +32,9 @@ export default function TestLogin() {
       
       if (result.success) {
         addResult('Admin login successful!', true);
-        addResult(`User role: ${user?.role}`, true);
-        addResult(`User name: ${user?.name}`, true);
+        addResult(`User role: ${result.user?.role || 'undefined'}`, true);
+        addResult(`User name: ${result.user?.name || 'undefined'}`, true);
+        addResult(`User email: ${result.user?.email || 'undefined'}`, true);
       } else {
         addResult(`Admin login failed: ${result.error}`, false);
       }
@@ -50,8 +59,9 @@ export default function TestLogin() {
       
       if (result.success) {
         addResult('User login successful!', true);
-        addResult(`User role: ${user?.role}`, true);
-        addResult(`User name: ${user?.name}`, true);
+        addResult(`User role: ${result.user?.role || 'undefined'}`, true);
+        addResult(`User name: ${result.user?.name || 'undefined'}`, true);
+        addResult(`User email: ${result.user?.email || 'undefined'}`, true);
       } else {
         addResult(`User login failed: ${result.error}`, false);
       }
